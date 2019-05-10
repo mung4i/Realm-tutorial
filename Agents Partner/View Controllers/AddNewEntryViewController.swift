@@ -34,58 +34,58 @@ import UIKit
 // MARK: - Add New Entry View Controller
 //
 class AddNewEntryViewController: UIViewController {
-  @IBOutlet weak var categoryTextField: UITextField!
-  @IBOutlet weak var descriptionTextField: UITextView!
-  @IBOutlet weak var nameTextField: UITextField!
-  
-  //
-  // MARK: - Variables And Properties
-  //
-  var selectedAnnotation: SpecimenAnnotation!
-  
-  //
-  // MARK: - IBActions
-  //
-  @IBAction func unwindFromCategories(segue: UIStoryboardSegue) {
+    @IBOutlet weak var categoryTextField: UITextField!
+    @IBOutlet weak var descriptionTextField: UITextView!
+    @IBOutlet weak var nameTextField: UITextField!
     
-  }
-  
-  //
-  // MARK: - Private Methods
-  //
-  func validateFields() -> Bool {
-    if nameTextField.text!.isEmpty || descriptionTextField.text!.isEmpty {
-      let alertController = UIAlertController(title: "Validation Error",
-                                              message: "All fields must be filled",
-                                              preferredStyle: .alert)
-      
-      let alertAction = UIAlertAction(title: "OK", style: .destructive) { alert in
-        alertController.dismiss(animated: true, completion: nil)
-      }
-      
-      alertController.addAction(alertAction)
-      
-      present(alertController, animated: true, completion: nil)
-      
-      return false
-    } else {
-      return true
+    //
+    // MARK: - Variables And Properties
+    //
+    var selectedAnnotation: SpecimenAnnotation!
+    
+    //
+    // MARK: - IBActions
+    //
+    @IBAction func unwindFromCategories(segue: UIStoryboardSegue) {
+        
     }
-  }
-  
-  //
-  // MARK: - View Controller
-  //
-  override func viewDidLoad() {
-    super.viewDidLoad()
-  }
+    
+    //
+    // MARK: - Private Methods
+    //
+    func validateFields() -> Bool {
+        if nameTextField.text!.isEmpty || descriptionTextField.text!.isEmpty {
+            let alertController = UIAlertController(title: "Validation Error",
+                                                    message: "All fields must be filled",
+                                                    preferredStyle: .alert)
+            
+            let alertAction = UIAlertAction(title: "OK", style: .destructive) { alert in
+                alertController.dismiss(animated: true, completion: nil)
+            }
+            
+            alertController.addAction(alertAction)
+            
+            present(alertController, animated: true, completion: nil)
+            
+            return false
+        } else {
+            return true
+        }
+    }
+    
+    //
+    // MARK: - View Controller
+    //
+    override func viewDidLoad() {
+        super.viewDidLoad()
+    }
 }
 
 //
 // MARK: - Text Field Delegate
 //
 extension AddNewEntryViewController: UITextFieldDelegate {
-  func textFieldDidBeginEditing(_ textField: UITextField) {
-    performSegue(withIdentifier: "Categories", sender: self)
-  }
+    func textFieldDidBeginEditing(_ textField: UITextField) {
+        performSegue(withIdentifier: "Categories", sender: self)
+    }
 }
