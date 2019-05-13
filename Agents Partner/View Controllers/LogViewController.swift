@@ -120,6 +120,31 @@ class LogViewController: UITableViewController {
         
         definesPresentationContext = true
     }
+    
+    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+        
+        if segue.identifier == "Edit" {
+            
+            let controller = segue.destination as! AddNewEntryViewController
+            let indexPath = self.tableView.indexPathForSelectedRow
+            
+            var selectedSpecimen: Specimen!
+            
+            if searchController.isActive {
+                
+                let searchResultsController = self.searchController.searchResultsController as! UITableViewController
+                let indexPathSearch = searchResultsController.tableView.indexPathForSelectedRow
+                selectedSpecimen = self.searchResults[indexPathSearch!.row]
+            }
+            
+            else {
+                
+                selectedSpecimen = self.specimens[indexPath!.row]
+            }
+            
+            controller.specimen = selectedSpecimen
+        }
+    }
 }
 
 //

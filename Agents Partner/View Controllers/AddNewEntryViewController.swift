@@ -75,10 +75,31 @@ class AddNewEntryViewController: UIViewController {
         }
     }
     
+    func fillTextFields() {
+        
+        self.nameTextField.text = self.specimen.name
+        self.categoryTextField.text = self.specimen.category.name
+        self.descriptionTextField.text = self.specimen.specimenDescription
+        
+        self.selectedCategory = self.specimen.category
+    }
+    
+    func updateSpecimen() {
+        
+        let realm = try! Realm()
+        
+        try! realm.write {
+            
+            specimen.name = self.nameTextField.text!
+            specimen.category = self.selectedCategory
+            specimen.specimenDescription = self.descriptionTextField.text
+        }
+    }
+    
     //
     // MARK: - Private Methods
     //
-    func validateFields() -> Bool {
+    private func validateFields() -> Bool {
         if nameTextField.text!.isEmpty || descriptionTextField.text!.isEmpty || self.selectedCategory == nil {
             let alertController = UIAlertController(title: "Validation Error",
                                                     message: "All fields must be filled",
@@ -103,16 +124,27 @@ class AddNewEntryViewController: UIViewController {
     //
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        if let specimen = self.specimen {
+            self.title = "Edit \(specimen.name)"
+            self.fillTextFields()
+        }
+        
+        else {
+            
+            self.title = "Add New Specimen"
+        }
     }
     
     override func shouldPerformSegue(withIdentifier identifier: String, sender: Any?) -> Bool {
         
         if validateFields() {
-            addNewSpecimen()
+            updateSpecimen()
             return true
         }
         
         else {
+            addNewSpecimen()
             return false
         }
     }
