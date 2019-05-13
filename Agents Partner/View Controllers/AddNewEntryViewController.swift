@@ -29,6 +29,7 @@
  */
 
 import UIKit
+import RealmSwift
 
 //
 // MARK: - Add New Entry View Controller
@@ -42,19 +43,43 @@ class AddNewEntryViewController: UIViewController {
     // MARK: - Variables And Properties
     //
     var selectedAnnotation: SpecimenAnnotation!
+    var selectedCategory: Category!
+    var specimen: Specimen!
     
     //
     // MARK: - IBActions
     //
     @IBAction func unwindFromCategories(segue: UIStoryboardSegue) {
         
+        if segue.identifier == "CategorySelectedSegue" {
+            let categoriesController = segue.source as! CategoriesTableViewController
+            selectedCategory = categoriesController.selectedCategory
+            categoryTextField.text = selectedCategory.name
+        }
+    }
+    
+    func addNewSpecimen() {
+        let realm = try! Realm() // 1
+        
+        try! realm.write { // 2
+            let newSpecimen = Specimen() // 3
+            
+            newSpecimen.name = nameTextField.text! // 4
+            newSpecimen.category = selectedCategory
+            newSpecimen.specimenDescription = descriptionTextField.text
+            newSpecimen.latitude = selectedAnnotation.coordinate.latitude
+            newSpecimen.longitude = selectedAnnotation.coordinate.longitude
+            
+            realm.add(newSpecimen) // 5
+            specimen = newSpecimen // 6
+        }
     }
     
     //
     // MARK: - Private Methods
     //
     func validateFields() -> Bool {
-        if nameTextField.text!.isEmpty || descriptionTextField.text!.isEmpty {
+        if nameTextField.text!.isEmpty || descriptionTextField.text!.isEmpty || self.selectedCategory == nil {
             let alertController = UIAlertController(title: "Validation Error",
                                                     message: "All fields must be filled",
                                                     preferredStyle: .alert)
@@ -78,6 +103,18 @@ class AddNewEntryViewController: UIViewController {
     //
     override func viewDidLoad() {
         super.viewDidLoad()
+    }
+    
+    override func shouldPerformSegue(withIdentifier identifier: String, sender: Any?) -> Bool {
+        
+        if validateFields() {
+            addNewSpecimen()
+            return true
+        }
+        
+        else {
+            return false
+        }
     }
 }
 

@@ -30,6 +30,7 @@
 
 import MapKit
 import UIKit
+import RealmSwift
 
 //
 // MARK: - Log View Controller
@@ -43,17 +44,58 @@ class LogViewController: UITableViewController {
     //
     // MARK: - Variables And Properties
     //
-    var searchResults: [Any] = []
+    var searchResults = try! Realm().objects(Specimen.self)
     var searchController: UISearchController!
-    var specimens: [Any] = []
+    var specimens = try! Realm().objects(Specimen.self)
+        .sorted(byKeyPath: "name", ascending: true)
     
     //
     // MARK: - IBActions
     //
     @IBAction func scopeChanged(sender: Any) {
         
+        let scopeBar = sender as! UISegmentedControl
+        let realm = try! Realm()
+        
+        switch scopeBar.selectedSegmentIndex {
+            
+        case 0:
+            specimens = realm.objects(Specimen.self).sorted(byKeyPath: "created", ascending: true)
+            
+        default:
+            specimens = realm.objects(Specimen.self).sorted(byKeyPath: "name", ascending: true)
+        }
+        
+        tableView.reloadData()
     }
     
+    //
+    // MARK: - Internal Methods
+    //
+    
+    func filterResultsWithSearchString(searchString: String) {
+        
+        let predicate = NSPredicate(format: "name BEGINSWITH [c]%@", searchString)
+        let scopeIndex = searchController.searchBar.selectedScopeButtonIndex
+        let realm = try! Realm()
+        
+        switch scopeIndex {
+            
+        case 0:
+            searchResults = realm.objects(Specimen.self)
+                .filter(predicate)
+                .sorted(byKeyPath: "name", ascending: true)
+            
+        case 1:
+            searchResults = realm.objects(Specimen.self)
+                .filter(predicate)
+                .sorted(byKeyPath: "created", ascending: true)
+            
+        default:
+            searchResults = realm.objects(Specimen.self)
+                .filter(predicate)
+        }
+    }
     
     //
     // MARK: - View Controller
@@ -91,6 +133,9 @@ extension LogViewController:  UISearchBarDelegate {
 //
 extension LogViewController: UISearchResultsUpdating {
     func updateSearchResults(for searchController: UISearchController) {
+        
+        let searchString = searchController.searchBar.text!
+        self.filterResultsWithSearchString(searchString: searchString)
         let searchResultsController = searchController.searchResultsController as! UITableViewController
         searchResultsController.tableView.reloadData()
     }
@@ -100,7 +145,29 @@ extension LogViewController: UISearchResultsUpdating {
 // MARK: - Table View Data Source
 extension LogViewController {
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        
+        let specimen = searchController.isActive ? searchResults[indexPath.row] : specimens[indexPath.row]
+        
         let cell = self.tableView.dequeueReusableCell(withIdentifier: "LogCell") as! LogCell
+        cell.titleLabel.text = specimen.name
+        cell.subtitleLabel.text = specimen.category.name
+        
+        switch specimen.category.name {
+        case "Uncategorized":
+            cell.iconImageView.image = UIImage(named: "IconUncategorized")
+        case "Reptiles":
+            cell.iconImageView.image = UIImage(named: "IconReptile")
+        case "Flora":
+            cell.iconImageView.image = UIImage(named: "IconFlora")
+        case "Birds":
+            cell.iconImageView.image = UIImage(named: "IconBird")
+        case "Arachnid":
+            cell.iconImageView.image = UIImage(named: "IconArachnid")
+        case "Mammals":
+            cell.iconImageView.image = UIImage(named: "IconMammal")
+        default:
+            cell.iconImageView.image = UIImage(named: "IconUncategorized")
+        }
         
         return cell
     }

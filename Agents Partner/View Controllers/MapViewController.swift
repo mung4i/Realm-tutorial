@@ -31,6 +31,7 @@
 import CoreLocation
 import MapKit
 import UIKit
+import RealmSwift
 
 //
 // MARK: - Map View Controller
@@ -52,6 +53,7 @@ class MapViewController: UIViewController {
     var lastAnnotation: MKAnnotation!
     var locationManager = CLLocationManager()
     var userLocated = false
+    var specimens = try! Realm().objects(Specimen.self)
     
     //
     // MARK: - IBActions
@@ -65,10 +67,38 @@ class MapViewController: UIViewController {
     }
     
     @IBAction func unwindFromAddNewEntry(segue: UIStoryboardSegue) {
+        
+        let addNewEntryController = segue.source as! AddNewEntryViewController
+        let addedSpecimen = addNewEntryController.specimen!
+        let addedSpecimenCoordinate = CLLocationCoordinate2D(latitude: addedSpecimen.latitude, longitude: addedSpecimen.longitude)
+
         if let lastAnnotation = lastAnnotation {
             mapView.removeAnnotation(lastAnnotation)
         }
         
+        else {
+            
+            for annotation in self.mapView.annotations {
+                
+                guard let currentAnnotation = annotation as? SpecimenAnnotation else {
+                    return
+                }
+                
+                if currentAnnotation.coordinate.latitude == addedSpecimen.latitude &&
+                    currentAnnotation.coordinate.longitude == addedSpecimen.longitude {
+                    
+                    self.mapView.removeAnnotation(currentAnnotation)
+                    break
+                }
+            }
+        }
+        
+        let annotation = SpecimenAnnotation(coordinate: addedSpecimenCoordinate,
+                                            title: addedSpecimen.name,
+                                            subtitle: addedSpecimen.category.name,
+                                            specimen: addedSpecimen)
+        
+        mapView.addAnnotation(annotation)
         lastAnnotation = nil
     }
     
@@ -104,6 +134,23 @@ class MapViewController: UIViewController {
         mapView.setRegion(zoomRegion, animated: true)
     }
     
+    func populateMap() {
+        
+        self.mapView.removeAnnotations(self.mapView.annotations)
+        
+        self.specimens = try! Realm().objects(Specimen.self)
+        self.specimens.forEach { (specimen) in
+            
+            let coordinate = CLLocationCoordinate2D(latitude: specimen.latitude, longitude: specimen.longitude)
+            let specimenAnnotation = SpecimenAnnotation(coordinate: coordinate,
+                                                        title: specimen.name,
+                                                        subtitle: specimen.category.name,
+                                                        specimen: specimen)
+            
+            self.mapView.addAnnotation(specimenAnnotation)
+        }
+    }
+    
     //
     // MARK: - View Controller
     //
@@ -119,6 +166,8 @@ class MapViewController: UIViewController {
         } else {
             locationManager.startUpdatingLocation()
         }
+        
+        self.populateMap()
     }
     
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
